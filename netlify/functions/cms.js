@@ -16,13 +16,25 @@ exports.handler = async (event) => {
     };
   }
 
+  const token = process.env.WEBFLOW_TOKEN;
+  if (!token) {
+    return {
+      statusCode: 500,
+      headers: { 'Access-Control-Allow-Origin': '*' },
+      body: JSON.stringify({ error: 'Missing WEBFLOW_TOKEN environment variable' })
+    };
+  }
+
   const collectionId = COLLECTIONS[collection];
-  const url = `https://api.webflow.com/collections/${collectionId}/items`;
+  const url = `https://api.webflow.com/v2/collections/${collectionId}/items?limit=100`;
 
   try {
     const data = await new Promise((resolve, reject) => {
       const req = https.get(url, {
-        headers: { 'accept-version': '1.0.0' }
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'accept-version': '2.0.0'
+        }
       }, (res) => {
         let body = '';
         res.on('data', chunk => body += chunk);
